@@ -17,8 +17,13 @@ import {Reactify} from "@yandex/ymaps3-types/reactify";
 import {validateYMapChildrenOrder} from "./validateYMapChildrenOrder";
 
 class EventBus<DetailType = any> {
-    private eventTarget: EventTarget;
-    constructor(description = '') { this.eventTarget = document.appendChild(document.createComment(description)); }
+    private readonly description: string;
+    private cachedEventTarget?: EventTarget;
+    // Lazily create the underlying EventTarget. The constructor must not touch
+    // `document`, otherwise constructing the module-level `mapEventBus` at import
+    // time throws "document is not defined" during SSR (e.g. Next.js prerender).
+    private get eventTarget(): EventTarget { return (this.cachedEventTarget ??= document.appendChild(document.createComment(this.description))); }
+    constructor(description = '') { this.description = description; }
     on(type: string, listener: (event: CustomEvent<DetailType>) => void) { this.eventTarget.addEventListener(type, listener as any); }
     once(type: string, listener: (event: CustomEvent<DetailType>) => void) { this.eventTarget.addEventListener(type, listener as any, { once: true }); }
     off(type: string, listener: (event: CustomEvent<DetailType>) => void) { this.eventTarget.removeEventListener(type, listener as any); }

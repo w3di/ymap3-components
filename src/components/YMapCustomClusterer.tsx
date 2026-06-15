@@ -23,7 +23,7 @@ export type YMapClustererProps = Omit<
 export const YMapCustomClusterer = React.forwardRef<
   YMapClustererHandle,
   YMapClustererProps
->(({ gridSize, method, ...props }, ref) => {
+>(({ gridSize, method, ...props }) => {
   const { reactify, ymaps } = useContext(
     YMapsContextState
   ) as YMapsComponentsState;
@@ -57,12 +57,10 @@ export const YMapCustomClusterer = React.forwardRef<
     return <></>;
   }
 
+  // Don't forward `ref`: reactify re-binds it every render under React 19 and loops
+  // with "Maximum update depth exceeded" (issue #19).
   return (
-    <YMapClustererComponent
-      ref={ref as any}
-      method={gridSizedMethod}
-      {...props}
-    />
+    <YMapClustererComponent method={gridSizedMethod} {...props} />
   );
 });
 
